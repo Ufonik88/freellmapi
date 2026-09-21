@@ -1,5 +1,6 @@
+// @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { I18nProvider } from '@/i18n'
@@ -71,7 +72,7 @@ describe('FusionPage (low-coverage module)', () => {
   })
 
   it('draft clamps k to [1, maxK]', () => {
-    expect(Math.min(Math.max(99 || 1, 1), 8)).toBe(8)
+    expect(Math.min(Math.max(99, 1), 8)).toBe(8)
     expect(Math.min(Math.max(0 || 1, 1), 8)).toBe(1)
   })
 

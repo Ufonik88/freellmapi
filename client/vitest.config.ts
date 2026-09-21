@@ -38,5 +38,6 @@ export default defineConfig({
   esbuild: { jsx: 'automatic' },
   test: {
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
+    setupFiles: ['./vitest.setup.ts'],
   },
 })
