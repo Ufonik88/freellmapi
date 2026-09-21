@@ -78,10 +78,10 @@ describe('PremiumPage', () => {
     vi.restoreAllMocks()
   })
 
-  it('shows the loading hint while the query is in flight', () => {
+  it('shows the loading skeleton while the query is in flight', () => {
     vi.spyOn(api, 'apiFetch').mockImplementation(() => new Promise(() => {}) as never)
-    renderPage()
-    expect(screen.getByText(/Loading…/)).toBeInTheDocument()
+    const { container } = renderPage()
+    expect(container.querySelector('[data-slot="skeleton"]')).toBeInTheDocument()
   })
 
   it('renders live feed catalog state with version and last-sync time', async () => {
@@ -170,11 +170,14 @@ describe('PremiumPage', () => {
   })
 
   it('does not activate an empty key', async () => {
+    const user = userEvent.setup()
     const apiFetch = mockApi({ hasKey: false, maskedKey: null, license: null })
     renderPage()
 
     await screen.findByPlaceholderText('fla_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
-    expect(screen.getByRole('button', { name: 'Activate' })).toBeDisabled()
+    // An empty submit is rejected client-side: inline validation error, no POST.
+    await user.click(screen.getByRole('button', { name: 'Activate' }))
+    expect(await screen.findByText('Required')).toBeInTheDocument()
     expect(apiFetch).not.toHaveBeenCalledWith(
       '/api/premium/key',
       expect.objectContaining({ method: 'POST' }),

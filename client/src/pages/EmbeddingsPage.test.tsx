@@ -78,10 +78,10 @@ describe('EmbeddingsPage', () => {
     vi.restoreAllMocks()
   })
 
-  it('shows the loading hint while the query is in flight', () => {
+  it('shows the loading skeleton while the query is in flight', () => {
     vi.spyOn(api, 'apiFetch').mockImplementation(() => new Promise(() => {}) as never)
-    renderPage()
-    expect(screen.getByText(/Loading…/)).toBeInTheDocument()
+    const { container } = renderPage()
+    expect(container.querySelector('[data-slot="skeleton"]')).toBeInTheDocument()
   })
 
   it('renders every family with dimension badges, usage and a default badge', async () => {

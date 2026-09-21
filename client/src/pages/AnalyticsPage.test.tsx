@@ -167,7 +167,7 @@ describe('AnalyticsPage', () => {
     renderPage()
 
     await screen.findByText('20')
-    await user.click(screen.getByRole('button', { name: '24h' }))
+    await user.click(screen.getByRole('tab', { name: '24h' }))
     await waitFor(() => expect(lastSeenRanges).toContain('24h'))
   })
 

@@ -51,19 +51,29 @@ function renderView(modality: 'image' | 'audio') {
   )
 }
 
+// Path-aware mock: the view also queries the usage endpoints, and a blanket
+// response would render usage rows carrying the same model names as the group
+// cards, making text queries ambiguous.
+function mockMedia(mediaRows: MediaModel[] = rows) {
+  return vi.spyOn(api, 'apiFetch').mockImplementation(async (path: string) => {
+    if (path === '/api/media') return { models: mediaRows } as never
+    return { models: [], totalRequestsMonth: 0, totalRequestsToday: 0 } as never
+  })
+}
+
 describe('MediaModelsView', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
   })
 
-  it('shows the loading hint while fetching', () => {
+  it('shows the loading skeleton while fetching', () => {
     vi.spyOn(api, 'apiFetch').mockImplementation(() => new Promise(() => {}) as never)
-    renderView('image')
-    expect(screen.getByText(/Loading…/)).toBeInTheDocument()
+    const { container } = renderView('image')
+    expect(container.querySelector('[data-slot="skeleton"]')).toBeInTheDocument()
   })
 
   it('renders groups and providers for the selected modality', async () => {
-    vi.spyOn(api, 'apiFetch').mockResolvedValue({ models: rows } as never)
+    mockMedia()
     renderView('image')
     expect(await screen.findByText('FLUX.1 [schnell]')).toBeInTheDocument()
     // Image modality filters out audio rows.
@@ -82,7 +92,7 @@ describe('MediaModelsView', () => {
 
   it('toggles a provider and persists via PUT', async () => {
     const user = userEvent.setup()
-    const apiFetch = vi.spyOn(api, 'apiFetch').mockResolvedValue({ models: rows } as never)
+    const apiFetch = mockMedia()
     renderView('image')
     await screen.findByText('FLUX.1 [schnell]')
     // Groups render alphabetically: FLUX.1 [dev] first (1 switch), then
@@ -99,7 +109,7 @@ describe('MediaModelsView', () => {
   })
 
   it('shows the empty state when no rows match the modality', async () => {
-    vi.spyOn(api, 'apiFetch').mockResolvedValue({ models: rows } as never)
+    mockMedia()
     renderView('audio')
     // Audio modality: only TTS-1 qualifies, so image-only state is n/a — but
     // an empty audio list still renders the media-empty hint when filtered.

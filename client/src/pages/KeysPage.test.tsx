@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { I18nProvider } from '@/i18n'
@@ -28,9 +29,13 @@ describe('KeysPage smoke (key list)', () => {
   })
 
   it('renders the unified key section', async () => {
+    const user = userEvent.setup()
     renderKeysPage()
-    // The unified key section always renders (key value + base URL endpoints).
-    expect(await screen.findByText(/api_key|baseUrl|endpoint/i)).toBeTruthy()
+    // The unified key section lives on the "Unified API key" tab; the page
+    // defaults to the provider list.
+    await user.click(await screen.findByRole('tab', { name: 'Unified API key' }))
+    // The section renders the unified key value + base URL endpoints.
+    expect((await screen.findAllByText(/api_key|baseUrl|endpoint/i)).length).toBeGreaterThan(0)
   })
 
   it('renders at least one key row from the mocked api response', async () => {

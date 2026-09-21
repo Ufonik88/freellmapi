@@ -118,10 +118,10 @@ describe('ModelDetailPage', () => {
     vi.restoreAllMocks()
   })
 
-  it('shows the loading hint while queries are in flight', () => {
+  it('shows the loading skeleton while queries are in flight', () => {
     vi.spyOn(api, 'apiFetch').mockImplementation(() => new Promise(() => {}) as never)
-    renderDetail()
-    expect(screen.getByText(/Loading…/)).toBeInTheDocument()
+    const { container } = renderDetail()
+    expect(container.querySelector('[data-slot="skeleton"]')).toBeInTheDocument()
   })
 
   it('renders the model not-found state when no providers match the id', async () => {
@@ -138,10 +138,11 @@ describe('ModelDetailPage', () => {
     // plus the provider-model-ids section, hence findAllByText).
     expect(await screen.findAllByText('nvidia')).not.toHaveLength(0)
     expect(await screen.findAllByText('cloudflare')).not.toHaveLength(0)
-    expect(screen.getByText('nvidia/flux-schnell')).toBeInTheDocument()
-    expect(screen.getByText('cf/flux-schnell')).toBeInTheDocument()
+    // The model ids appear in both the summary pills and the provider rows.
+    expect((await screen.findAllByText('nvidia/flux-schnell')).length).toBeGreaterThan(0)
+    expect((await screen.findAllByText('cf/flux-schnell')).length).toBeGreaterThan(0)
     // The unrelated TTS-1 provider is filtered out.
-    expect(screen.queryByText('tts-1')).not.toBeInTheDocument()
+    expect(screen.queryAllByText('tts-1')).toHaveLength(0)
     // Summary badges: 2 providers + tools + vision (union of members). The
     // vision/tools labels also appear on individual provider rows.
     expect(screen.getByText(/2 providers/)).toBeInTheDocument()

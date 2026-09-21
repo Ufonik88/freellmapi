@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import { CopyButton } from '@/components/copy-button'
 
 describe('CopyButton', () => {
@@ -23,14 +23,22 @@ describe('CopyButton', () => {
     expect(writeText).toHaveBeenCalledWith('hello world')
   })
 
-  it('flips to the "Copied" aria-label after click, then reverts', () => {
+  it('flips to the "Copied" aria-label after click, then reverts', async () => {
     render(<CopyButton text="x" />)
     const btn = screen.getByRole('button')
     expect(btn).toHaveAttribute('aria-label', 'Copy')
-    fireEvent.click(btn)
+    // The label only flips once the clipboard promise resolves, so flush the
+    // microtask queue before asserting.
+    await act(async () => {
+      fireEvent.click(btn)
+      await vi.advanceTimersByTimeAsync(0)
+    })
     expect(btn).toHaveAttribute('aria-label', 'Copied')
-    vi.advanceTimersByTime(1500)
-    expect(btn).toHaveAttribute('aria-label', 'Copied')
+    // The revert rides a 1500ms timer.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1500)
+    })
+    expect(btn).toHaveAttribute('aria-label', 'Copy')
   })
 
   it('uses a custom label when provided', () => {

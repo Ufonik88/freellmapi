@@ -7,7 +7,10 @@ import { cleanup } from '@testing-library/react'
 // jsdom (esp. v26) doesn't always expose a functional window.localStorage.
 // Components read/write it (i18n locale, auth token), so provide a minimal
 // in-memory implementation that behaves like the real Storage API.
-if (!window.localStorage || typeof window.localStorage.getItem !== 'function') {
+// This setup file is loaded for every suite, including the plain-TypeScript
+// node-environment ones (most of lib/ and pages/). DOM-only shims must be
+// skipped when there is no window, or those suites die at setup time.
+if (typeof window !== 'undefined' && (!window.localStorage || typeof window.localStorage.getItem !== 'function')) {
   const store = new Map<string, string>()
   Object.defineProperty(window, 'localStorage', {
     value: {
@@ -31,13 +34,13 @@ if (!window.localStorage || typeof window.localStorage.getItem !== 'function') {
 
 // Reset the DOM and any module-level fetch mock between tests.
 afterEach(() => {
-  cleanup()
+  if (typeof window !== 'undefined') cleanup()
   vi.restoreAllMocks()
 })
 
 // jsdom doesn't implement matchMedia (App uses it for dark-mode pref) —
 // provide a permissive stub so component mounts don't throw.
-if (!window.matchMedia) {
+if (typeof window !== 'undefined' && !window.matchMedia) {
   window.matchMedia = (query: string) =>
     ({
       matches: false,
@@ -54,7 +57,7 @@ if (!window.matchMedia) {
 // @base-ui/react's Switch (and other pointer-based primitives) construct a
 // PointerEvent on click; jsdom doesn't ship one. Provide a minimal subclass of
 // MouseEvent so switch toggles work in tests.
-if (typeof window.PointerEvent === 'undefined') {
+if (typeof window !== 'undefined' && typeof window.PointerEvent === 'undefined') {
   class PointerEventPolyfill extends MouseEvent {
     pointerId: number
     pointerType: string

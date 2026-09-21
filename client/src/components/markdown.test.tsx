@@ -54,7 +54,10 @@ describe('Markdown', () => {
     render(<Markdown>{'```js\nconst x = 1;\n```'}</Markdown>)
     const btn = screen.getByRole('button', { name: /copy code/i })
     expect(btn).toBeInTheDocument()
-    expect(screen.getByText('const x = 1;')).toBeInTheDocument()
+    // Fenced code renders through the hljs highlighter, so the source is split
+    // across token spans — assert on the <pre> text content instead of a
+    // single text node.
+    expect(btn.closest('pre')).toHaveTextContent('const x = 1;')
   })
 
   it('copies the code block text (without trailing newline) on click', () => {

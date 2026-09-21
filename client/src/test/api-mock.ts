@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import type { ApiKey } from '../../../shared/types'
 import type { FusionConfigResponse, FallbackEntry } from '@/pages/FusionPage'
 import * as api from '@/lib/api'
